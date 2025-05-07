@@ -1,1 +1,1 @@
-docker build -t tpxyz-template:latest .
+docker build -t tpxyz-notebooks:latest .

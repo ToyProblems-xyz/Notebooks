@@ -7,8 +7,10 @@ WORKDIR /app
 COPY requirements.txt requirements.txt
 RUN pip3 install -r requirements.txt
 
-# RUN apt-get update 
+# Make port 8888 available to the world outside this container
+EXPOSE 8888
 
 COPY /src src
 
-CMD [ "python3", "-m" , "flask", "run", "--host=0.0.0.0"]
+# Run Jupyter Notebook when the container launches
+CMD ["jupyter", "notebook", "--ip=0.0.0.0", "--port=8888", "--no-browser", "--allow-root"]

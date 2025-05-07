@@ -1,6 +1,2 @@
 
-DOCKER_VOLUMES="
---volume="./src/:/app/src/" \
-"
-
-docker run -i -t ${DOCKER_VOLUMES} tpxyz-template:latest /bin/bash
+docker run -p 8888:8888 tpxyz-notebooks:latest
