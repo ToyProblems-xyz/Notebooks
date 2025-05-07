@@ -1,0 +1,1 @@
+docker build -t tpxyz-template:latest .
