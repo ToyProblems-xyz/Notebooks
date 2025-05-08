@@ -1,4 +1,4 @@
-# Juputer Notebooks
+# Jupyter Notebooks
 This repo contains different notebooks referred to on [toyproblems.xyz](https://toyproblems.xyz/)
 
 # Instructions
