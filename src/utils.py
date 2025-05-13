@@ -15,7 +15,7 @@ def annotated_heatmap(data, title):
     # Loop over data dimensions and create text annotations.
     for i in range(len(ylabels)):
         for j in range(len(xlabels)):
-            text = ax.text(j, i, round(data[i][j]),
+            text = ax.text(j, i, round(data[i][j], 1),
                            ha="center", va="center", color="w")
 
     ax.set_title(title)
