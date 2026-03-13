@@ -96,22 +96,12 @@ class CorridorEnvTerminalReward:
         for s in range(self.nS):
             self.model[s] = {}
             for a in range(self.nA):
-                self.s = s
-                s_, dropped = self.step(a)
-                p1 = self.prob
-                p2 = 1 - self.prob
-                done = bool(s == self.terminal_s)
-                if done:
-                    r = 10
-                else:
-                    r = 0.0
-                self.model[s][a] = [(p1, s_, r, done), (p2, np.int64(s), r, done)] if self.is_slippery else [(1.0, s_, r, done)]
-        
+                self.model[s][a] = self.step(s, a)
         
     def reset(self):
         self.s = 0
         
-    def step(self, a):
+    def step_environment(self, s, a):
         if a == 0: # LEFT
             shift = -1
         elif a == 1: # DON'T MOVE
@@ -122,9 +112,17 @@ class CorridorEnvTerminalReward:
             raise
 
         if self.is_slippery:
-            self.s = np.random.choice([self.s+shift, self.s], p=[self.prob, 1 - self.prob])
+            s = np.random.choice([s+shift, s], p=[self.prob, 1 - self.prob])
         else:
-            self.s += shift
+            s += shift
             
-        dropped = (self.s<0 or self.s>=self.nS)
-        return np.clip(self.s, 0, self.nS-1), dropped
+        dropped = (s<0 or s>=self.nS)
+        return np.clip(s, 0, self.nS-1), dropped
+
+    def step(self, s, a):
+        s_, dropped = self.step_environment(s, a)
+        p1 = self.prob
+        p2 = 1 - self.prob
+        done = bool(s == self.terminal_s)
+        r = 10.0 if done else 0.0
+        return [(p1, s_, r, done), (p2, np.int64(s), r, done)] if self.is_slippery else [(1.0, s_, r, done)]
