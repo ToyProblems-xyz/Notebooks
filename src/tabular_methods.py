@@ -39,6 +39,5 @@ def monte_carlo_prediction(env, pi, gamma: float = 1.0, num_episodes: int = 10):
             returns[s][a]["freq"] = new_freq
             q[s][a] = returns[s][a]["avg_return"]
             v[s] = max(q[s])
-        v[-1] = 0.0
         err.append(sum((v_analytical - v)**2)/n_states)
     return v, err

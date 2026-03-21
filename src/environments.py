@@ -126,7 +126,7 @@ class CorridorEnvTerminalReward:
     def step(self, s, a):
         s_, dropped = self.step_environment(s, a)
         
-        done = bool(s_ == self.terminal_s)
+        done = bool(s == self.terminal_s)
         r = 10.0 if done else 0.0
         
         if self.is_slippery:
