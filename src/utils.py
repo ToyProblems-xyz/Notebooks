@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import numpy as np
 
 def annotated_heatmap(data, title):
     ylabels = ["states"]
@@ -21,3 +22,22 @@ def annotated_heatmap(data, title):
     ax.set_title(title)
     fig.tight_layout()
     plt.show()
+
+# Build transition matrix and reward vector under fixed policy
+def analytical_policy_evaluation(pi, model, gamma):
+    n_states = len(pi)
+    n_actions = len(pi[0])
+    P = np.zeros((n_states, n_states))
+    R = np.zeros(n_states)
+
+    for s in range(n_states):
+        for a in range(n_actions):
+            for prob, s_prime, reward, done in model[s][a]:
+                P[s, s_prime] = pi[s][a]*prob*(not done)
+                R[s] += pi[s][a]*reward*prob
+
+    I = np.eye(n_states)
+    V = np.linalg.inv(I - gamma * P) @ R
+
+    np.set_printoptions(precision=1, suppress=True)
+    return V

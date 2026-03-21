@@ -91,38 +91,49 @@ class CorridorEnvTerminalReward:
         self.is_slippery = is_slippery
         self.s = 0
         self.prob = 0.9
-        self.terminal_s = self.nS-1        
+        self.terminal_s = self.nS-1      
         self.model = {}
         for s in range(self.nS):
             self.model[s] = {}
             for a in range(self.nA):
+                # Pre-calculate transition dynamics for the model
                 self.model[s][a] = self.step(s, a)
         
     def reset(self):
         self.s = 0
+        return self.s
         
     def step_environment(self, s, a):
         if a == 0: # LEFT
             shift = -1
-        elif a == 1: # DON'T MOVE
+        elif a == 1: # STAY
             shift = 0
-        elif a == 2:
-            shift = +1 # RIGHT
+        elif a == 2: # RIGHT
+            shift = +1
         else:
-            raise
+            raise ValueError("Invalid action")
 
+        # Logic for slippery transitions
         if self.is_slippery:
-            s = np.random.choice([s+shift, s], p=[self.prob, 1 - self.prob])
+            # Note: This logic assumes if you slip, you stay in the 's' you were in
+            next_s = np.random.choice([s + shift, s], p=[self.prob, 1 - self.prob])
         else:
-            s += shift
+            next_s = s + shift
             
-        dropped = (s<0 or s>=self.nS)
-        return np.clip(s, 0, self.nS-1), dropped
+        dropped = (next_s < 0 or next_s >= self.nS)
+        return np.clip(next_s, 0, self.nS-1), dropped
 
     def step(self, s, a):
         s_, dropped = self.step_environment(s, a)
-        p1 = self.prob
-        p2 = 1 - self.prob
-        done = bool(s == self.terminal_s)
+        
+        done = bool(s_ == self.terminal_s)
         r = 10.0 if done else 0.0
-        return [(p1, s_, r, done), (p2, np.int64(s), r, done)] if self.is_slippery else [(1.0, s_, r, done)]
+        
+        if self.is_slippery:
+            # p1: success move to s_, p2: slip stays at current s
+            # We must re-evaluate 'done' and 'r' for the slip case (p2)
+            done_slip = bool(s == self.terminal_s)
+            r_slip = 10.0 if done_slip else 0.0
+            return [(self.prob, s_, r, done), (1 - self.prob, np.int64(s), r_slip, done_slip)]
+        else:
+            return [(1.0, s_, r, done)]
