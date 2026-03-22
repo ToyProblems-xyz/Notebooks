@@ -22,7 +22,7 @@ class CorridorEnv:
         
         
     def reset(self):
-        self.s = 0
+        return np.random.randint(0, env.nS)
         
     def step(self, a):
         if a == 0: # LEFT
@@ -47,26 +47,26 @@ class CorridorEnvTimePenalty:
         self.nS = n_states
         self.nA = 3
         self.is_slippery = is_slippery
-        self.s = 0
         self.prob = 0.9
         self.terminal_s = self.nS-1        
         self.model = {}
         for s in range(self.nS):
             self.model[s] = {}
             for a in range(self.nA):
-                self.s = s
-                s_, dropped = self.step(a)
-                p1 = self.prob
-                p2 = 1 - self.prob
-                done = bool(s == self.terminal_s)
-                r = -10 if (dropped and not done) else -1    
-                self.model[s][a] = [(p1, s_, r, done), (p2, np.int64(s), r, done)] if self.is_slippery else [(1.0, s_, r, done)]
-        
+                self.model[s][a] = self.step(s, a)
+                
+    def step(self, s, a):
+        s_, dropped = self.step_environment(s, a)
+        p1 = self.prob
+        p2 = 1 - self.prob
+        done = bool(s == self.terminal_s)
+        r = -10 if (dropped and not done) else -1    
+        return [(p1, s_, r, done), (p2, np.int64(s), r, done)] if self.is_slippery else [(1.0, s_, r, done)]
         
     def reset(self):
-        self.s = 0
+        return np.random.randint(0, self.nS)
         
-    def step(self, s, a):
+    def step_environment(self, s, a):
         if a == 0: # LEFT
             shift = -1
         elif a == 1: # DON'T MOVE
@@ -77,9 +77,9 @@ class CorridorEnvTimePenalty:
             raise
 
         if self.is_slippery:
-            self.s = np.random.choice([s+shift, s], p=[self.prob, 1 - self.prob])
+            s = np.random.choice([s+shift, s], p=[self.prob, 1 - self.prob])
         else:
-            self.s += shift
+            s += shift
             
         dropped = (s<0 or s>=self.nS)
         return np.clip(s, 0, self.nS-1), dropped
@@ -89,7 +89,6 @@ class CorridorEnvTerminalReward:
         self.nS = n_states
         self.nA = 3
         self.is_slippery = is_slippery
-        self.s = 0
         self.prob = 0.9
         self.terminal_s = self.nS-1      
         self.model = {}
@@ -100,8 +99,7 @@ class CorridorEnvTerminalReward:
                 self.model[s][a] = self.step(s, a)
         
     def reset(self):
-        self.s = 0
-        return self.s
+        return np.random.randint(0, env.nS)
         
     def step_environment(self, s, a):
         if a == 0: # LEFT
